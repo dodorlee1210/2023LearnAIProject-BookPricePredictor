@@ -1,0 +1,122 @@
+from tensorflow import keras
+from keras.models import Sequential
+from keras.layers import Dense, Dropout
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+# Install Kaggle API
+!pip install kaggle
+! mkdir ~/.kaggle
+!cp kaggle.json ~/.kaggle/
+! chmod 600 ~/.kaggle/kaggle.json
+
+# Load/Install Data
+! kaggle datasets download thomaskonstantin/top-270-rated-computer-science-programing-books -f prog_book.csv
+path = "/content/prog_book.csv"
+df_original = pd.read_csv(path)
+
+## Book Price Predictor 1
+# Preprocess Data
+df = df_original.copy()
+df.drop(columns=['Reviews', 'Book_title', 'Description'], inplace=True)
+df.dropna(inplace=True)
+transform_type = LabelEncoder()
+df['Type'] = transform_type.fit_transform(df['Type'])
+
+# Split Data
+y = df.drop(columns=['Number_Of_Pages','Type','Rating']).values
+x = df.drop('Price', axis=1).values
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, shuffle=True)
+
+# Design & Compile Models
+model = Sequential()
+model.add(Dense(3, input_dim=3, kernel_initializer='normal', activation='relu'))
+model.add(Dense(1, kernel_initializer='normal'))
+model.compile(loss='mean_squared_error', optimizer='adam')
+
+model0 = Sequential()
+model0.add(Dense(3, input_dim=3, kernel_initializer='normal', activation='relu'))
+model0.add(Dense(3, kernel_initializer='normal'))
+model0.compile(loss='mean_squared_error', optimizer='adam')
+
+# Train Models
+epochs = 12
+history0 = model0.fit(x_train, y_train, epochs=epochs, validation_data=(x_test, y_test))
+history = model.fit(x_train, y_train, epochs=epochs, validation_data=(x_test, y_test))
+
+# Compare Loss of Models Using Graph Visualizations
+plt.rcParams["figure.figsize"] = (10, 5)
+
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+plt.plot(history0.history['loss'])
+plt.plot(history0.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+## Book Price Predictor 2
+# Load/Import Data
+! kaggle datasets download bilalyussef/google-books-dataset -f google_books_1299.csv
+! unzip google_books_1299.csv
+path2 = "/content/google_books_1299.csv"
+df_original2 = pd.read_csv(path2)
+
+# Preprocess Data
+df2 = df_original2.copy()
+df2.drop(columns=['Unnamed: 0','title', 'author', 'ISBN', 'published_date','currency', 'voters','description', 'generes', 'publisher'], inplace=True)
+df2.dropna(inplace=True)
+transform_type = LabelEncoder()
+df2['language'] = transform_type.fit_transform(df2['language'])
+df2 = df2[df2["page_count"] <= 2000]
+
+# Split Data
+y2 = df2.drop(columns=['rating','page_count','language']).values
+x2 = df2.drop('price', axis=1).values
+x_train2, x_test2, y_train2, y_test2 = train_test_split(x2, y2, test_size=0.2, shuffle=True)
+
+# Design & Compile Models
+model2 = Sequential()
+model2.add(Dense(3, input_dim=3, kernel_initializer='normal', activation='relu'))
+model2.add(Dense(1, kernel_initializer='normal'))
+model2.compile(loss='mean_squared_error', optimizer='adam')
+
+model3 = Sequential()
+model3.add(Dense(3, input_dim=3, kernel_initializer='normal', activation='relu'))
+model3.add(Dense(4, activation='relu'))
+model3.add(Dense(3, kernel_initializer='normal'))
+model3.compile(loss='mean_squared_error', optimizer='adam')
+
+epochs = 12
+history2 = model2.fit(x_train2, y_train2, epochs=epochs, validation_data=(x_test2, y_test2))
+history3 = model3.fit(x_train2, y_train2, epochs=epochs, validation_data=(x_test2, y_test2))
+
+# Compare Loss of Models Using Graph Visualizations
+plt.rcParams["figure.figsize"] = (10,5)
+
+plt.plot(history2.history['loss'])
+plt.plot(history2.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+plt.plot(history3.history['loss'])
+plt.plot(history3.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
