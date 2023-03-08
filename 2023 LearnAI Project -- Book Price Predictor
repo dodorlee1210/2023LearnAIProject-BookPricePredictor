@@ -120,3 +120,68 @@ plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.show()
+
+## Book Price Predictor 3
+# Load/Install Data
+! kaggle datasets download arthurio/books-from-blackwells-bookshop -f blackwell_shop_cleaned.csv
+path3 = "/content/blackwell_shop_cleaned.csv"
+! unzip blackwell_shop_cleaned.csv
+df_original3 = pd.read_csv(path3)
+
+# Preprocess Data
+df3 = df_original3.copy()
+df3.drop(columns=['isbn', 'publisher', 'publication_date', 'imprint', 'name', 'subtitle',
+                  'author', 'edition', 'short_blurb', 'long_blurb', 'category', 'link_book_page', 'blurbReview', 'salesRank'], inplace=True)
+df3.dropna(inplace=True)
+df3 = df3[df3['discount'] <= 100]
+df3['no_of_pages'] = df3['no_of_pages'].map(lambda i: ''.join([x for x in i if x.isdigit()]))
+df3['no_of_pages'] = pd.to_numeric(df3['no_of_pages'], errors="coerce")
+df3.dropna(inplace=True)
+df3['no_of_pages'] = df3['no_of_pages'].astype(float)
+transform_type = LabelEncoder()
+df3['type'] = transform_type.fit_transform(df3['type'])
+df3['isSecondHand'] = transform_type.fit_transform(df3['isSecondHand'])
+df3['language'] = transform_type.fit_transform(df3['language'])
+df3['published_country'] = transform_type.fit_transform(df3['published_country'])
+
+# Split Data
+y3 = df3.drop(columns=['type','discount', 'published_country', 'language', 'height', 
+                     'isSecondHand', 'width', 'spine', 'no_of_pages', 'weight']).values
+x3 = df3.drop(columns=['gbpprice', 'isSecondHand']).values
+x_train3, x_test3, y_train3, y_test3 = train_test_split(x3, y3, test_size=0.2, shuffle=True)
+
+# Design & Compile Models
+model4 = Sequential()
+model4.add(Dense(5, input_dim=9, kernel_initializer='normal', activation='relu'))
+model4.add(Dense(1, kernel_initializer='normal'))
+model4.compile(loss='mean_squared_error', optimizer='adam')
+
+model5 = Sequential()
+model5.add(Dense(5, input_dim=9, kernel_initializer='normal', activation='relu'))
+model5.add(Dense(2, activation='relu'))
+model5.add(Dense(1, kernel_initializer='normal'))
+model5.compile(loss='mean_squared_error', optimizer='adam')
+
+# Train Models
+epochs = 20
+history4 = model4.fit(x_train3, y_train3, epochs=epochs, validation_data=(x_test3, y_test3))
+history5 = model5.fit(x_train3, y_train3, epochs=epochs, validation_data=(x_test3, y_test3))
+
+# Compare Loss of Models Using Graph Visualizations
+plt.rcParams["figure.figsize"] = (10, 5)
+
+plt.plot(history4.history['loss'])
+plt.plot(history4.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+plt.plot(history5.history['loss'])
+plt.plot(history5.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
