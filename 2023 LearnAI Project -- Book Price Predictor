@@ -4,6 +4,7 @@ from keras.layers import Dense, Dropout
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+import plotly.express as px
 import numpy as np
 import pandas as pd
 
@@ -185,3 +186,28 @@ plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.show()
+
+## Testing Predictor 2 with Another Dataset
+# Load/Import Data
+! kaggle datasets download jealousleopard/goodreadsbooks -f books.csv
+path4 = "/content/books.csv"
+! unzip books.csv
+test = pd.read_csv("books.csv", error_bad_lines=False)
+
+# Preprocess Data
+test1 = test.copy()
+test1.drop(columns=['isbn13','bookID','title','authors','isbn','ratings_count','text_reviews_count','publication_date', 'publisher'], inplace=True)
+test1.dropna(inplace=True)
+transform_type = LabelEncoder()
+test1['language_code'] = transform_type.fit_transform(test1['language_code'])
+
+# Compare Prediction by Graph Visualizations
+tested = np.c_[model2.predict(test1)]
+fig = px.scatter(tested)
+fig.update_traces(marker_size=10)
+fig.show()
+
+tested2 = np.c_[model3.predict(test1)]
+fig1 = px.scatter(tested2)
+fig1.update_traces(marker_size=10)
+fig1.show()
